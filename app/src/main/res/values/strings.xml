@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">DynamicJSONForm</string>
+    <string name="done">Done</string>
+    <string name="add">Add</string>
+    <string name="json_input_error">Error occured! Please check the json input data</string>
+    <string name="json_data_not_found">JSON data not found</string>
+    <string name="json_writing_error">Error occured while writing input to JSON</string>
+    <string name="error_enter_valid_input">"Please enter valid input"</string>
+</resources>

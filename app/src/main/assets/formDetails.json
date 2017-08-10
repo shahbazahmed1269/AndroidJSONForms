@@ -1,0 +1,4 @@
+[
+  {"field-name":"age", "type":"number", "required":true},
+  {"field-name":"gender", "type":"dropdown", "options":["male", "female", "other"]}
+]
