@@ -1,4 +1,6 @@
 [
-  {"field-name":"age", "type":"number", "required":true},
+  {"field-name":"name", "type":"text", "required": true},
+  {"field-name":"age", "type":"number", "min": 18, "max": 60},
+  {"field-name":"address", "type":"multiline"},
   {"field-name":"gender", "type":"dropdown", "options":["male", "female", "other"]}
 ]
