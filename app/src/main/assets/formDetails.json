@@ -2,5 +2,6 @@
   {"field-name":"name", "type":"text", "required": true},
   {"field-name":"age", "type":"number", "min": 18, "max": 60},
   {"field-name":"address", "type":"multiline"},
-  {"field-name":"gender", "type":"dropdown", "options":["male", "female", "other"]}
+  {"field-name":"gender", "type":"dropdown", "options":["male", "female", "other"]},
+  {"field-name": "contact", "type": "composite", "fields": [{"field-name":"field1", "type":"text", "required": true}, {"field-name":"field2", "type":"text", "required": true}, {"field-name": "contact2", "type": "composite", "fields": [{"field-name":"field1", "type":"text", "required": true}, {"field-name":"field2", "type":"text", "required": true}]}]}
 ]

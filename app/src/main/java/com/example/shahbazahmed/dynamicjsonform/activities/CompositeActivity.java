@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.SpinnerAdapter;
 import android.widget.Toast;
 
 import com.example.shahbazahmed.dynamicjsonform.R;
@@ -21,18 +22,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 import fr.ganfra.materialspinner.MaterialSpinner;
 
-public class FormActivity extends AppCompatActivity {
-    private final String mJsonFileName = "formDetails.json";
+public class CompositeActivity extends AppCompatActivity {
     private Map<String, View> compositeMap;
     private Map<String, JSONObject> compositeValue;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +39,32 @@ public class FormActivity extends AppCompatActivity {
         setContentView(R.layout.activity_form);
         final LinearLayout llForms = (LinearLayout) findViewById(R.id.llForms);
         JSONArray formJSON = null;
-        String jsonData = readJSONFromAsset(mJsonFileName);
+        String jsonData = getIntent().getStringExtra("itemJSON");
+        final Map<String, Object> valuesMap = new HashMap<>();
+        if (getIntent() != null && getIntent().getStringExtra("formValue") != null) {
+            try {
+                JSONObject jsonItem = new JSONObject(getIntent().getStringExtra("formValue"));
+                // Create a map of values from JSONObject.
+                Iterator<String> iter = jsonItem.keys();
+                while (iter.hasNext()) {
+                    String key = iter.next();
+                    try {
+                        Object value = jsonItem.get(key);
+                        valuesMap.put(key, value);
+                        if (compositeValue == null)
+                            compositeValue = new HashMap();
+                        if (value.getClass() == JSONObject.class) {
+                            compositeValue.put(key, (JSONObject) value);
+                        }
+                    } catch (JSONException e) {
+                        Log.e("CompositeActivity", "Error: " + e.getMessage());
+                    }
+                }
+            } catch (JSONException e) {
+                Toast.makeText(CompositeActivity.this, "Oops! Some error occured", Toast.LENGTH_SHORT).show();
+                Log.e("CompositeActivity", "Error: " + e.toString());
+            }
+        }
         if (jsonData != null) {
             try {
                 formJSON = new JSONArray(jsonData);
@@ -55,6 +79,7 @@ public class FormActivity extends AppCompatActivity {
                             );
                             if (editText != null) {
                                 llForms.addView(editText);
+                                editText.setText((String) valuesMap.get(editText.getHint().toString()));
                             }
                             break;
                         case "dropdown":
@@ -63,12 +88,21 @@ public class FormActivity extends AppCompatActivity {
                             );
                             if (spinner != null) {
                                 llForms.addView(spinner);
+                                String selectedValue = (String) valuesMap.get(spinner.getFloatingLabelText().toString());
+                                if (selectedValue != null && selectedValue.length() > 0) {
+                                    SpinnerAdapter sAdapter = spinner.getAdapter();
+                                    for (int j = 0; j < sAdapter.getCount(); j++) {
+                                        if (sAdapter.getItem(j).toString().equals(selectedValue)) {
+                                            spinner.setSelection(j);
+                                        }
+                                    }
+                                }
                             }
                             break;
-                        case "composite": {
+                        case "composite":
                             if (compositeMap == null)
                                 compositeMap = new HashMap();
-                            CompositeView cView = new CompositeView(FormActivity.this);
+                            CompositeView cView = new CompositeView(CompositeActivity.this);
                             final String fieldName = formJSON.getJSONObject(i).getString("field-name");
                             final int id = fieldName.hashCode();
                             final JSONArray fields = (JSONArray) formJSON.getJSONObject(i).get("fields");
@@ -77,20 +111,34 @@ public class FormActivity extends AppCompatActivity {
                             cView.setItems(formJSON.getJSONObject(i));
                             llForms.addView(cView);
                             cView.holderView1.setText(formJSON.getJSONObject(i).getString("field-name"));
+                            // Restore previously cached values
+                            JSONObject jsonInput = (JSONObject) valuesMap.get(fieldName);
+                            if (jsonInput != null) {
+                                Iterator<String> keys = jsonInput.keys();
+                                if (keys.hasNext()) {
+                                    String key = keys.next();
+                                    cView.holderView2.setVisibility(View.VISIBLE);
+                                    cView.textView2.setVisibility(View.VISIBLE);
+                                    cView.holderView2.setText(key);
+                                    cView.textView2.setText(jsonInput.getString(key));
+                                }
+                            }
+
                             cView.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
-                                    Intent i = new Intent(FormActivity.this, CompositeActivity.class);
+                                    Intent i = new Intent(CompositeActivity.this, CompositeActivity.class);
                                     i.putExtra("compositeId", fieldName);
                                     i.putExtra("itemJSON", fields.toString());
                                     if (compositeValue != null && compositeValue.containsKey(fieldName)) {
                                         i.putExtra("formValue", compositeValue.get(fieldName).toString());
+                                    } else if (valuesMap.get(fieldName) != null) {
+                                        i.putExtra("formValue", ((JSONObject) valuesMap.get(fieldName)).toString());
                                     }
                                     startActivityForResult(i, 1);
                                 }
                             });
-
-                        }
+                            break;
                     }
                 }
             } catch (JSONException e) {
@@ -162,13 +210,15 @@ public class FormActivity extends AppCompatActivity {
                             ).show();
                         }
                     } else if (childView instanceof CompositeView) {
-                        for (Map.Entry<String, JSONObject> entry : compositeValue.entrySet()) {
-                            if (entry.getKey().hashCode() == childView.getId()) {
-                                try {
-                                    inputJSON.put(entry.getKey(), entry.getValue());
-                                    inputsCount++;
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
+                        if (compositeValue != null) {
+                            for (Map.Entry<String, JSONObject> entry : compositeValue.entrySet()) {
+                                if (entry.getKey().hashCode() == childView.getId()) {
+                                    try {
+                                        inputJSON.put(entry.getKey(), entry.getValue());
+                                        inputsCount++;
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
                         }
@@ -178,6 +228,7 @@ public class FormActivity extends AppCompatActivity {
                 if (inputsCount == inputJSON.length()) {
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra("inputJSON", inputJSON.toString());
+                    resultIntent.putExtra("compositeId", getIntent().getStringExtra("compositeId"));
                     if (getParent() == null) {
                         setResult(Activity.RESULT_OK, resultIntent);
                     } else {
@@ -186,30 +237,14 @@ public class FormActivity extends AppCompatActivity {
                     finish();
                 } else {
                     Toast.makeText(
-                            FormActivity.this,
+                            CompositeActivity.this,
                             getString(R.string.error_enter_valid_input),
                             Toast.LENGTH_SHORT
                     ).show();
                 }
-                //Log.d("FormActivity", "inputJSON: "+inputJSON.toString());
+                //Log.d("CompositeActivity", "inputJSON: "+inputJSON.toString());
             }
         });
-    }
-
-    private String readJSONFromAsset(String fileName) {
-        String json = null;
-        try {
-            InputStream is = getAssets().open(fileName);
-            int size = is.available();
-            byte[] buffer = new byte[size];
-            is.read(buffer);
-            is.close();
-            json = new String(buffer, "UTF-8");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            return null;
-        }
-        return json;
     }
 
     @Override
@@ -222,6 +257,7 @@ public class FormActivity extends AppCompatActivity {
                         JSONObject jsonInput = new JSONObject(data.getStringExtra("inputJSON"));
                         if (data != null) {
                             String id = data.getStringExtra("compositeId");
+                            Log.d("FormActivity", "compositeId: " + id);
                             if (id != null && compositeMap.containsKey(id)) {
                                 CompositeView view = (CompositeView) compositeMap.get(id);
                                 Iterator<String> keys = jsonInput.keys();
@@ -241,7 +277,7 @@ public class FormActivity extends AppCompatActivity {
                             }
                         }
                     } catch (JSONException e) {
-
+                        Log.e("CompositeActivity", "Error: " + e.toString());
                     }
                 }
             }

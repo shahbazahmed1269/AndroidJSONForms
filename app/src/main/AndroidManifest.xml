@@ -20,10 +20,12 @@
         </activity>
         <activity
             android:name=".activities.FormActivity"
-            android:launchMode="standard"
             android:screenOrientation="portrait" />
         <activity
             android:name=".activities.UpdateFormActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".activities.CompositeActivity"
+            android:launchMode="standard"
             android:screenOrientation="portrait" />
     </application>
 
