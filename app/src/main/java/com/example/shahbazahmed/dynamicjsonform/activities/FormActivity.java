@@ -162,13 +162,15 @@ public class FormActivity extends AppCompatActivity {
                             ).show();
                         }
                     } else if (childView instanceof CompositeView) {
-                        for (Map.Entry<String, JSONObject> entry : compositeValue.entrySet()) {
-                            if (entry.getKey().hashCode() == childView.getId()) {
-                                try {
-                                    inputJSON.put(entry.getKey(), entry.getValue());
-                                    inputsCount++;
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
+                        if (compositeValue != null) {
+                            for (Map.Entry<String, JSONObject> entry : compositeValue.entrySet()) {
+                                if (entry.getKey().hashCode() == childView.getId()) {
+                                    try {
+                                        inputJSON.put(entry.getKey(), entry.getValue());
+                                        inputsCount++;
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
                         }
