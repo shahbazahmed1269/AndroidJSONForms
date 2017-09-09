@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.example.shahbazahmed.dynamicjsonform.R;
 import com.example.shahbazahmed.dynamicjsonform.adapters.ItemAdapter;
+import com.example.shahbazahmed.dynamicjsonform.adapters.RecyclerViewItemClickListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = "MainActivity";
     private static final int FORM_ACTIVITY_CODE = 1;
+    private static final int UPDATE_FORM_ACTIVITY_CODE = 2;
     private ItemAdapter mAdapter;
     private TextView mTvReportCount;
 
@@ -39,6 +41,15 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.hasFixedSize();
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mAdapter = new ItemAdapter(getLayoutInflater());
+        mAdapter.setListener(new RecyclerViewItemClickListener() {
+            @Override
+            public void onItemClicked(JSONObject jsonItem, int position) {
+                Intent i = new Intent(MainActivity.this, UpdateFormActivity.class);
+                i.putExtra("jsonItem", jsonItem.toString());
+                i.putExtra("itemPosition", position);
+                startActivityForResult(i, UPDATE_FORM_ACTIVITY_CODE);
+            }
+        });
         mRecyclerView.setAdapter(mAdapter);
 
         Button btnAdd = (Button) findViewById(R.id.btn_add);
@@ -75,6 +86,19 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             }
+            case UPDATE_FORM_ACTIVITY_CODE: {
+                try {if (data != null) {
+                    int pos = data.getIntExtra("itemPosition", -1);
+                    JSONObject item = new JSONObject(data.getStringExtra("updatedJSON"));
+                    if (pos != -1 && item != null) {
+                        mAdapter.replaceItem(item, pos);
+                    }
+                }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            break;
         }
     }
 }
