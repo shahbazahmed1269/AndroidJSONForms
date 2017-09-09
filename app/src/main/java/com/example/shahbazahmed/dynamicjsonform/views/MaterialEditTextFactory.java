@@ -1,14 +1,15 @@
 package com.example.shahbazahmed.dynamicjsonform.views;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 
 import com.example.shahbazahmed.dynamicjsonform.R;
+import com.example.shahbazahmed.dynamicjsonform.validators.MaxValidator;
+import com.example.shahbazahmed.dynamicjsonform.validators.MinValidator;
+import com.example.shahbazahmed.dynamicjsonform.validators.ValueRequiredValidator;
 import com.rengwuxian.materialedittext.MaterialEditText;
-import com.rengwuxian.materialedittext.validation.METValidator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -68,59 +69,5 @@ public class MaterialEditTextFactory {
         }
 
         return editText;
-    }
-}
-
-class MinValidator extends METValidator {
-    private int min;
-
-    public MinValidator(String fieldName, int min) {
-        super(fieldName + " cannot be less than " + min);
-        this.min = min;
-    }
-
-    @Override
-    public boolean isValid(@NonNull CharSequence text, boolean isEmpty) {
-        int number;
-        try {
-            number = Integer.parseInt(text.toString());
-        } catch (NumberFormatException e) {
-            return false;
-        }
-        return number >= min;
-    }
-}
-
-class MaxValidator extends METValidator {
-    private int max;
-
-    public MaxValidator(String fieldName, int max) {
-        super(fieldName + " cannot be greater than " + max);
-        this.max = max;
-    }
-
-    @Override
-    public boolean isValid(@NonNull CharSequence text, boolean isEmpty) {
-        int number;
-        try {
-            number = Integer.parseInt(text.toString());
-        } catch (NumberFormatException e) {
-            return false;
-        }
-        return number <= max;
-    }
-}
-
-class ValueRequiredValidator extends METValidator {
-    private int max;
-
-    public ValueRequiredValidator(String fieldName) {
-        super(fieldName + " cannot be empty");
-        this.max = max;
-    }
-
-    @Override
-    public boolean isValid(@NonNull CharSequence text, boolean isEmpty) {
-        return text.length() > 0;
     }
 }
